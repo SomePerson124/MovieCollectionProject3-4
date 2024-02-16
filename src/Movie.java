@@ -40,8 +40,4 @@ public class Movie {
         return userRating;
     }
 
-    public String toString() {
-        return title;
-    }
-
 }
