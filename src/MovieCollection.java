@@ -60,22 +60,11 @@ public class MovieCollection {
         if (count == 0) {
             System.out.println("No movie titles match that search term!");
         } else {
-            System.out.println("Which movie would you like to lean more about?");
+            System.out.println("Which movie would you like to learn more about?");
             System.out.print("Enter number: ");
             int num = scanner.nextInt();
             scanner.nextLine();
-            while (num < 1 || num > count) {
-                System.out.print("Please enter valid option: ");
-                num = scanner.nextInt();
-                scanner.nextLine();
-            }
-            System.out.println();
-            System.out.println("Title: " + titles.get(num - 1).getTitle());
-            System.out.println("RunTime: " + titles.get(num - 1).getRuntime() + " minutes");
-            System.out.println("Directed By: " + titles.get(num - 1).getDirector());
-            System.out.println("Cast: " + titles.get(num - 1).getCast());
-            System.out.println("Overview: " + titles.get(num - 1).getOverview());
-            System.out.println("User Rating: " + titles.get(num - 1).getUserRating());
+            movieInfo(num, count, titles);
         }
         System.out.println();
     }
@@ -113,11 +102,16 @@ public class MovieCollection {
                 titles.add(movieCollection.get(i));
             }
         }
-        System.out.println("Which movie would you like to lean more about?");
+        System.out.println("Which movie would you like to learn more about?");
         System.out.print("Enter number: ");
         int num = scanner.nextInt();
         scanner.nextLine();
-        while (num < 1 || num > movieCount) {
+        movieInfo(num, movieCount, titles);
+        System.out.println();
+    }
+
+    private void movieInfo(int num, int count, ArrayList<Movie> titles) {
+        while (num < 1 || num > count) {
             System.out.print("Please enter valid option: ");
             num = scanner.nextInt();
             scanner.nextLine();
@@ -129,7 +123,6 @@ public class MovieCollection {
         System.out.println("Cast: " + titles.get(num - 1).getCast());
         System.out.println("Overview: " + titles.get(num - 1).getOverview());
         System.out.println("User Rating: " + titles.get(num - 1).getUserRating());
-        System.out.println();
     }
 
     private void importCSVData() {
