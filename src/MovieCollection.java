@@ -1,18 +1,20 @@
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystemNotFoundException;
 import java.util.Scanner;
 import java.util.ArrayList;
 
 public class MovieCollection {
     private ArrayList<Movie> movieCollection;
-    private ArrayList<Movie> titles;
-    private ArrayList<String> cast;
+    ArrayList<String> allActors;
+    ArrayList<String> alreadyMentioned;
+    ArrayList<String> sortedActors;
     private Scanner scanner;
 
     public MovieCollection() {
         movieCollection = new ArrayList<Movie>();
-        titles = new ArrayList<Movie>();
-        cast = new ArrayList<String>();
+        allActors = new ArrayList<String>();
+        alreadyMentioned = new ArrayList<String>();
         scanner = new Scanner(System.in);
         mainMenu();
     }
@@ -43,11 +45,11 @@ public class MovieCollection {
     }
 
     private void searchTitles() {
-        sortAlphabetically("t");
+        sortTitles();
         System.out.print("Enter title search term: ");
         String titleST = scanner.nextLine();
-        System.out.println();
         int count = 0;
+        ArrayList<Movie> titles = new ArrayList<Movie>();
         for (int i = 0; i < movieCollection.size(); i++) {
             if (movieCollection.get(i).getTitle().toLowerCase().indexOf(titleST.toLowerCase()) != -1) {
                 count++;
@@ -76,53 +78,63 @@ public class MovieCollection {
             System.out.println("User Rating: " + titles.get(num - 1).getUserRating());
         }
         System.out.println();
-        for (int i = 0; i < titles.size(); i++) {
-            titles.remove(i);
-        }
     }
 
     private void searchCast() {
         System.out.print("Enter a person to search for (first or last name): ");
         String name = scanner.nextLine();
-        System.out.println();
         int count = 0;
-        for (int i = 0; i < movieCollection.size(); i++) {
-            if (movieCollection.get(i).getCast().toLowerCase().indexOf(name.toLowerCase()) != -1) {
-                String[] splitCast = movieCollection.get(i).getCast().split("\\|");
-                for (int j = 0; j < splitCast.length; j++) {
-                    if (splitCast[j].toLowerCase().indexOf(name.toLowerCase()) != -1) {
-                        cast.add(splitCast[j]);
-                        for (int k = 0; k < cast.size(); k++) {
-                            if (!cast.get(k).equals(splitCast[j])) {
-                                count++;
-                                System.out.println(count + ". " + splitCast[j]);
-                            }
-                        }
-                    }
-                }
+        getAllActors();
+        sortActors();
+        sortedActors = new ArrayList<String>();
+        for (int i = 0; i < allActors.size(); i++) {
+            if (allActors.get(i).toLowerCase().indexOf(name.toLowerCase()) != -1) {
+                count++;
+                System.out.println(count + ". " + allActors.get(i));
+                sortedActors.add(allActors.get(i));
             }
         }
-        System.out.println(cast);
         if (count == 0) {
-            System.out.println("No results to match your search");
-        } else {
-            System.out.println("Which would you like to see all movies for?");
-            System.out.print("Enter number: ");
-            int num = scanner.nextInt();
-            scanner.nextLine();
-            while (num < 1 || num > count) {
-                System.out.print("Please enter valid option: ");
-                num = scanner.nextInt();
-                scanner.nextLine();
-            }
-            System.out.println();
+            System.out.println("No results match your search");
         }
+        System.out.println();
+        System.out.println("Which would you like to see all movies for?");
+        System.out.print("Enter number: ");
+        int number = scanner.nextInt();
+        int movieCount = 0;
+        scanner.nextLine();
+        sortTitles();
+        String actor = sortedActors.get(number - 1);
+        ArrayList<Movie> titles = new ArrayList<Movie>();
+        for (int i = 0; i < movieCollection.size(); i++) {
+            if (movieCollection.get(i).getCast().indexOf(actor) != -1) {
+                movieCount++;
+                System.out.println(movieCount + ". " + movieCollection.get(i).getTitle());
+                titles.add(movieCollection.get(i));
+            }
+        }
+        System.out.println("Which movie would you like to lean more about?");
+        System.out.print("Enter number: ");
+        int num = scanner.nextInt();
+        scanner.nextLine();
+        while (num < 1 || num > movieCount) {
+            System.out.print("Please enter valid option: ");
+            num = scanner.nextInt();
+            scanner.nextLine();
+        }
+        System.out.println();
+        System.out.println("Title: " + titles.get(num - 1).getTitle());
+        System.out.println("RunTime: " + titles.get(num - 1).getRuntime() + " minutes");
+        System.out.println("Directed By: " + titles.get(num - 1).getDirector());
+        System.out.println("Cast: " + titles.get(num - 1).getCast());
+        System.out.println("Overview: " + titles.get(num - 1).getOverview());
+        System.out.println("User Rating: " + titles.get(num - 1).getUserRating());
         System.out.println();
     }
 
     private void importCSVData() {
         try {
-            File myFile = new File("src\\movies_data.csv");
+            File myFile = new File("src/movies_data.csv");
             Scanner fileScanner = new Scanner(myFile);
             fileScanner.nextLine();
             while (fileScanner.hasNext()) {
@@ -142,28 +154,53 @@ public class MovieCollection {
         }
     }
 
-    private void sortAlphabetically(String choice) {
-        if (choice.equals("t")) {
-            for (int i = 1; i < movieCollection.size(); i++) {
-                Movie currentMovie = movieCollection.get(i);
-                int currentIdx = i;
-                while (currentIdx > 0 && currentMovie.getTitle().compareTo(movieCollection.get(currentIdx - 1).getTitle()) < 0) {
-                    movieCollection.set(currentIdx, movieCollection.get(currentIdx - 1));
-                    currentIdx--;
-                }
-                movieCollection.set(currentIdx, currentMovie);
+    private void sortTitles() {
+        for (int i = 1; i < movieCollection.size(); i++) {
+            Movie currentMovie = movieCollection.get(i);
+            int currentIdx = i;
+            while (currentIdx > 0 && currentMovie.getTitle().compareTo(movieCollection.get(currentIdx - 1).getTitle()) < 0) {
+                movieCollection.set(currentIdx, movieCollection.get(currentIdx - 1));
+                currentIdx--;
             }
-        } else if (choice.equals("c")) {
-            for (int i = 1; i < movieCollection.size(); i++) {
-                Movie currentMovie = movieCollection.get(i);
-                int currentIdx = i;
-                while (currentIdx > 0 && currentMovie.getCast().compareTo(movieCollection.get(currentIdx - 1).getCast()) < 0) {
-                    movieCollection.set(currentIdx, movieCollection.get(currentIdx - 1));
-                    currentIdx--;
+            movieCollection.set(currentIdx, currentMovie);
+        }
+    }
+
+    public void sortActors() {
+        for (int i = 1; i < allActors.size(); i++) {
+            String currentActor = allActors.get(i);
+            int currentIdx = i;
+            while (currentIdx > 0 && currentActor.compareTo(allActors.get(currentIdx - 1)) < 0) {
+                allActors.set(currentIdx, allActors.get(currentIdx - 1));
+                currentIdx--;
+            }
+            allActors.set(currentIdx, currentActor);
+        }
+    }
+
+    private void getAllActors() {
+        for (int i = 0; i < movieCollection.size(); i++) {
+            String[] splitData = movieCollection.get(i).getCast().split("\\|");
+            for (int j = 0; j < splitData.length; j++) {
+                if (checkIfAdd(splitData[j])) {
+                    allActors.add(splitData[j]);
                 }
-                movieCollection.set(currentIdx, currentMovie);
+                alreadyMentioned.add(splitData[j]);
             }
         }
+    }
+
+    private boolean checkIfAdd(String name) {
+        int count = 0;
+        for (int i = 0; i < alreadyMentioned.size(); i++) {
+            if (alreadyMentioned.get(i).equals(name)) {
+                count++;
+            }
+        }
+        if (count > 0) {
+            return false;
+        }
+        return true;
     }
 
 }
